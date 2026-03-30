@@ -149,6 +149,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#F5F8FF}
     </div>
     <div class="ng" id="nav-admin" style="display:none">
       <div class="ngl">Quản trị Admin</div>
+      <button class="nb" onclick="nav('admincb',this)"><span class="ic">👤</span>Đẩy danh sách CB</button>
       <button class="nb" onclick="nav('adminkh',this)"><span class="ic">🎯</span>Đẩy kế hoạch</button>
       <button class="nb" onclick="nav('users',this)"><span class="ic">👥</span>Quản lý tài khoản</button>
       <button class="nb" onclick="nav('adminkho',this)"><span class="ic">🗄️</span>Đẩy dữ liệu KH</button>
@@ -405,6 +406,33 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#F5F8FF}
         </div>
       </div>
 
+      <!-- ADMIN: ĐẨY DANH SÁCH CB -->
+      <div class="panel" id="p-admincb">
+        <div class="card" style="max-width:700px">
+          <div class="ch">
+            <div class="ctt">👤 Đẩy danh sách cán bộ chi nhánh</div>
+            <button class="btn bo bs" onclick="dlCbSample()">⬇ File mẫu</button>
+          </div>
+          <div class="info">📋 Upload danh sách toàn bộ CB có giới thiệu KH. Mã CB là số (VD: 149094). Dữ liệu này dùng để autocomplete khi nhập giới thiệu. Mỗi lần upload sẽ <strong>ghi đè toàn bộ</strong> danh sách cũ.</div>
+          <div class="warn">Cột bắt buộc: <strong>MA_CB · HO_TEN</strong> | Tuỳ chọn: <strong>DON_VI</strong></div>
+          <div class="uz" id="cb-zone" onclick="document.getElementById('cb-file').click()">
+            <div class="ui">📂</div><h3>Kéo thả hoặc click chọn file danh sách CB</h3><p>CSV hoặc Excel (.xlsx)</p>
+          </div>
+          <input type="file" id="cb-file" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleCbFile(this)">
+          <div id="cb-prev" style="display:none;margin-top:13px">
+            <div class="ch mb2">
+              <div class="ctt" style="font-size:13px">Preview — <span id="cb-n">0</span> cán bộ</div>
+              <button class="btn ba bs" id="btn-cb" onclick="execCb()">▶ Đẩy lên Sheets</button>
+            </div>
+            <div class="tw tws">
+              <table><thead><tr><th>MA_CB</th><th>Họ tên</th><th>Đơn vị</th></tr></thead>
+              <tbody id="cb-body"></tbody></table>
+            </div>
+          </div>
+          <div id="cb-res" style="display:none;margin-top:13px"></div>
+        </div>
+      </div>
+
       <!-- ADMIN: ĐẨY KẾ HOẠCH -->
       <div class="panel" id="p-adminkh">
         <div class="card" style="max-width:860px">
@@ -413,6 +441,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#F5F8FF}
             <div class="row">
               <select id="kh-nam" style="padding:7px 9px;border-radius:7px;border:1.5px solid var(--br);font-size:13px"></select>
               <button class="btn bo bs" onclick="dlKhSample()">⬇ File mẫu</button>
+              <button class="btn bd bs" onclick="xoaKeHoach()">🗑 Xóa kế hoạch năm này</button>
             </div>
           </div>
           <div class="warn">Cột bắt buộc: <strong>MA_CB</strong> | Chỉ tiêu: <strong>KH_HDV_TY · KH_GN_TY · KH_HHBH_TRIEU</strong> (đơn vị: <strong>đồng</strong>) | Tuỳ chọn: HO_TEN · DON_VI</div>
@@ -439,7 +468,10 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#F5F8FF}
         <div class="card" style="max-width:860px">
           <div class="ch">
             <div class="ctt">🗄️ Đẩy dữ liệu khách hàng (Kho KH)</div>
-            <button class="btn bo bs" onclick="dlKhoSample()">⬇ File mẫu</button>
+            <div class="row">
+              <button class="btn bo bs" onclick="dlKhoSample()">⬇ File mẫu</button>
+              <button class="btn bd bs" onclick="xoaKhoKH()">🗑 Xóa toàn bộ kho KH</button>
+            </div>
           </div>
           <div class="info">📋 <strong>Phòng QLNB</strong> upload file danh sách KH hàng ngày. Dữ liệu HĐV sẽ tự động liên kết với CIF khi cán bộ giới thiệu. Upsert theo CIF.</div>
           <div class="warn">Cột bắt buộc: <strong>CIF</strong> | Tuỳ chọn: TEN_KH · DON_VI_QL · LOAI_KH · SO_DU_HDV · DU_NO_TD · TRANG_THAI</div>
@@ -664,7 +696,8 @@ function initApp(){
 // -- NAV --
 const NTITLES={dash:'Dashboard',add:'Nhập Giới thiệu',bulk:'Import Hàng loạt',
   tracuu:'Tra cứu theo Cán bộ',list:'Danh sách Giới thiệu',baocao:'Báo cáo Tổng hợp',
-  adminkh:'Đẩy Kế hoạch CB',adminkho:'Đẩy Dữ liệu Khách hàng',users:'Quản lý Tài khoản',setup:'Cài đặt'};
+  admincb:'Đẩy Danh sách Cán bộ',adminkh:'Đẩy Kế hoạch CB',adminkho:'Đẩy Dữ liệu Khách hàng',
+  users:'Quản lý Tài khoản',setup:'Cài đặt'};
 function nav(name,btn){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
@@ -690,11 +723,10 @@ async function fetchAll(force=false){
 async function loadCbList(){
   if(!GAS_URL||!USER) return;
   try{
-    const d=await gasGet({action:'get_users_list'});
+    const d=await gasGet({action:'get_cb_list'});
     _cbList=(d.list||[]);
   }catch(e){
-    // Fallback: nếu get_users_list chưa được deploy, build từ cache
-    console.warn('loadCbList fallback');
+    console.warn('loadCbList lỗi:',e.message);
   }
 }
 
@@ -776,13 +808,14 @@ function selectAddCb(maCB,hoTen,donVi){
 }
 
 function validateAddMaCb(){
-  const maCB=document.getElementById('a-macb').value.trim().toUpperCase();
+  const maCB=document.getElementById('a-macb').value.trim();
   if(!maCB){document.getElementById('a-macb-err').textContent='Nhập mã cán bộ';return false;}
-  const cb=_cbList.find(u=>u.maCB===maCB);
-  if(!cb){document.getElementById('a-macb-err').textContent='Không tìm thấy mã CB này trong hệ thống';return false;}
-  // Tự điền lại nếu người dùng gõ tay đúng mà không chọn dropdown
-  document.getElementById('a-hoten').value=cb.hoTen;
-  document.getElementById('a-donvi').value=cb.donVi;
+  // Nếu có trong danh sách thì tự điền tên/đơn vị
+  const cb=_cbList.find(u=>u.maCB===maCB||u.maCB===maCB.toUpperCase());
+  if(cb){
+    document.getElementById('a-hoten').value=cb.hoTen;
+    document.getElementById('a-donvi').value=cb.donVi;
+  }
   document.getElementById('a-macb-err').textContent='';
   return true;
 }
@@ -915,7 +948,6 @@ async function parseBulk(file){
       const sp=String(row.LOAI_SP??row.loai_sp??'HDV').trim();
       const ngay=String(row.NGAY_GT??row.ngay_gt??'').trim();
       if(!maCB) return{...row,_i:i+2,maCB,cif,sp,ngay,_s:'error',_r:'Thiếu MA_CB'};
-      if(!cbMap[maCB]) return{...row,_i:i+2,maCB,cif,sp,ngay,_s:'error',_r:'MA_CB không tồn tại'};
       if(!cif) return{...row,_i:i+2,maCB,cif,sp,ngay,_s:'error',_r:'Thiếu CIF'};
       if(!ngay) return{...row,_i:i+2,maCB,cif,sp,ngay,_s:'error',_r:'Thiếu NGAY_GT'};
       const nd=new Date(ngay);
@@ -1170,6 +1202,67 @@ function exportBCXlsx(){
   XLSX.writeFile(wb,'BaoCao_'+document.getElementById('bc-nam').value+'_'+today()+'.xlsx');
 }
 
+// -- DANH SÁCH CB --
+let _cbUploadRows=[];
+const cbZ=document.getElementById('cb-zone');
+['dragover','dragenter'].forEach(ev=>cbZ.addEventListener(ev,e=>{e.preventDefault();cbZ.classList.add('dg');}));
+['dragleave','drop'].forEach(ev=>cbZ.addEventListener(ev,e=>cbZ.classList.remove('dg')));
+cbZ.addEventListener('drop',e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f)parseCb(f);});
+function handleCbFile(el){if(el.files[0])parseCb(el.files[0]);el.value='';}
+
+function parseCb(file){
+  document.getElementById('cb-prev').style.display='none';
+  document.getElementById('cb-res').style.display='none';
+  const r=new FileReader();
+  r.onload=e=>{
+    const wb=XLSX.read(e.target.result,{type:'array'});
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+    _cbUploadRows=rows.map(row=>({
+      maCB:  String(row.MA_CB??row.ma_cb??'').trim().replace(/\.0+$/,''),
+      hoTen: String(row.HO_TEN??row.ho_ten??'').trim(),
+      donVi: String(row.DON_VI??row.don_vi??'').trim(),
+    })).filter(r=>r.maCB&&r.hoTen);
+    document.getElementById('cb-n').textContent=_cbUploadRows.length;
+    document.getElementById('cb-body').innerHTML=_cbUploadRows.slice(0,50).map(r=>`<tr>
+      <td class="mono fw7">${r.maCB}</td><td>${r.hoTen}</td><td>${r.donVi||'–'}</td>
+    </tr>`).join('')+(
+      _cbUploadRows.length>50?`<tr><td colspan="3" class="empty sm mt">... và ${_cbUploadRows.length-50} cán bộ khác</td></tr>`:''
+    );
+    document.getElementById('cb-prev').style.display='block';
+    toast('Đọc '+_cbUploadRows.length+' cán bộ');
+  };
+  r.readAsArrayBuffer(file);
+}
+
+async function execCb(){
+  if(!_cbUploadRows.length){toast('Không có dữ liệu','wn');return;}
+  const btn=document.getElementById('btn-cb');btn.disabled=true;btn.textContent='Đang đẩy...';
+  try{
+    const d=await gasPost({action:'upload_danh_sach_cb',rows:_cbUploadRows});
+    document.getElementById('cb-res').innerHTML=`<div style="background:#F0FFF4;border:1.5px solid var(--gn2);border-radius:8px;padding:13px">
+      <div style="font-size:15px;font-weight:700;color:var(--gn)">✅ Đẩy danh sách CB thành công — ${d.total} cán bộ</div>
+      <div class="sm mt mt2">Autocomplete khi nhập giới thiệu sẽ dùng danh sách này.</div></div>`;
+    document.getElementById('cb-res').style.display='block';
+    document.getElementById('cb-prev').style.display='none';
+    _cbUploadRows=[];
+    // Reload cbList để autocomplete cập nhật ngay
+    await loadCbList();
+    toast('Đẩy danh sách CB OK','ok');
+  }catch(e){toast('Lỗi: '+e.message,'er');}
+  finally{btn.disabled=false;btn.textContent='▶ Đẩy lên Sheets';}
+}
+
+function dlCbSample(){
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
+    ['MA_CB','HO_TEN','DON_VI'],
+    [149094,'PHẠM THỊ MAI LIÊN','Phòng Giao dịch khách hàng'],
+    [141336,'KIỀU THỊ MỸ LINH','Phòng Giao dịch khách hàng'],
+    [153366,'NGUYỄN TRƯỜNG LONG','Phòng Tín dụng'],
+  ]),'DanhSachCB');
+  XLSX.writeFile(wb,'FileMau_DanhSachCB.xlsx');
+}
+
 // -- KẾ HOẠCH --
 const khZ=document.getElementById('kh-zone');
 ['dragover','dragenter'].forEach(ev=>khZ.addEventListener(ev,e=>{e.preventDefault();khZ.classList.add('dg');}));
@@ -1316,6 +1409,40 @@ function setKhoProg(pct,lbl,det){
   document.getElementById('kho-ppct').textContent=pct+'%';
   document.getElementById('kho-plbl').textContent=lbl;
   document.getElementById('kho-pdet').textContent=det;
+}
+
+function xoaKeHoach(){
+  const nam=document.getElementById('kh-nam').value;
+  confirmMo('🗑 Xóa kế hoạch '+nam+'?',
+    'Toàn bộ dữ liệu kế hoạch năm '+nam+' sẽ bị xóa vĩnh viễn. Không thể hoàn tác!',
+    async()=>{
+      try{
+        const d=await gasPost({action:'del_kehoach',nam});
+        toast('✅ Đã xóa kế hoạch năm '+nam+' ('+d.deleted+' dòng)','ok');
+        document.getElementById('kh-res').innerHTML=`<div style="background:#FFEBEE;border:1.5px solid var(--rd);border-radius:8px;padding:13px">
+          <div style="font-weight:700;color:var(--rd)">🗑 Đã xóa ${d.deleted} dòng kế hoạch năm ${nam}</div></div>`;
+        document.getElementById('kh-res').style.display='block';
+        document.getElementById('kh-prev').style.display='none';
+        _khRows=[];
+      }catch(e){toast('Lỗi: '+e.message,'er');}
+    }
+  );
+}
+
+function xoaKhoKH(){
+  confirmMo('🗑 Xóa toàn bộ Kho KH?',
+    'Toàn bộ dữ liệu kho khách hàng sẽ bị xóa vĩnh viễn. Không thể hoàn tác!',
+    async()=>{
+      try{
+        const d=await gasPost({action:'del_kho_kh'});
+        toast('✅ Đã xóa kho KH ('+d.deleted+' dòng)','ok');
+        document.getElementById('kho-res').innerHTML=`<div style="background:#FFEBEE;border:1.5px solid var(--rd);border-radius:8px;padding:13px">
+          <div style="font-weight:700;color:var(--rd)">🗑 Đã xóa ${d.deleted} dòng trong kho KH</div></div>`;
+        document.getElementById('kho-res').style.display='block';
+        _khoRows=[];
+      }catch(e){toast('Lỗi: '+e.message,'er');}
+    }
+  );
 }
 
 function dlKhoSample(){
