@@ -150,8 +150,8 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#F5F8FF}
     <div class="ng" id="nav-admin" style="display:none">
       <div class="ngl">Quản trị Admin</div>
       <button class="nb" onclick="nav('adminkh',this)"><span class="ic">🎯</span>Đẩy kế hoạch</button>
-      <button class="nb" onclick="nav('adminkho',this)"><span class="ic">🗄️</span>Đẩy dữ liệu KH</button>
       <button class="nb" onclick="nav('users',this)"><span class="ic">👥</span>Quản lý tài khoản</button>
+      <button class="nb" onclick="nav('adminkho',this)"><span class="ic">🗄️</span>Đẩy dữ liệu KH</button>
     </div>
     <div class="ng">
       <div class="ngl">Cài đặt</div>
@@ -415,7 +415,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#F5F8FF}
               <button class="btn bo bs" onclick="dlKhSample()">⬇ File mẫu</button>
             </div>
           </div>
-          <div class="warn">Cột bắt buộc: <strong>MA_CB</strong> | Chỉ tiêu: <strong>KH_HDV_TY · KH_GN_TY · KH_HHBH_TRIEU</strong> | Tuỳ chọn: HO_TEN · DON_VI</div>
+          <div class="warn">Cột bắt buộc: <strong>MA_CB</strong> | Chỉ tiêu: <strong>KH_HDV_TY · KH_GN_TY · KH_HHBH_TRIEU</strong> (đơn vị: <strong>đồng</strong>) | Tuỳ chọn: HO_TEN · DON_VI</div>
           <div class="uz" id="kh-zone" onclick="document.getElementById('kh-file').click()">
             <div class="ui">📂</div><h3>Kéo thả hoặc click chọn file kế hoạch</h3><p>CSV hoặc Excel</p>
           </div>
@@ -1183,18 +1183,29 @@ function parseKh(file){
   r.onload=e=>{
     const wb=XLSX.read(e.target.result,{type:'array'});
     const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
-    _khRows=rows.map(row=>({
-      maCB:  String(row.MA_CB||row.ma_cb||'').trim().toUpperCase(),
-      hoTen: String(row.HO_TEN||row.ho_ten||'').trim(),
-      donVi: String(row.DON_VI||row.don_vi||'').trim(),
-      khHDV: Number(row.KH_HDV_TY||row.kh_hdv||0)||0,
-      khGN:  Number(row.KH_GN_TY||row.kh_gn||0)||0,
-      khHHBH:Number(row.KH_HHBH_TRIEU||row.kh_hhbh||0)||0,
-    })).filter(r=>r.maCB);
+    _khRows=rows.map(row=>{
+      const maCB=String(row.MA_CB||row.ma_cb||'').trim().replace(/\.0+$/,'').toUpperCase();
+      // Đọc giá trị thô (đơn vị đồng), chuyển sang tỷ/triệu
+      const rawHDV =Number(row.KH_HDV_TY   ||row.kh_hdv  ||0)||0;
+      const rawGN  =Number(row.KH_GN_TY    ||row.kh_gn   ||0)||0;
+      const rawHHBH=Number(row.KH_HHBH_TRIEU||row.kh_hhbh||0)||0;
+      // Nếu giá trị > 1000 → đang là đồng, chia về tỷ/triệu
+      const khHDV  = rawHDV  > 1000 ? rawHDV  / 1e9  : rawHDV;
+      const khGN   = rawGN   > 1000 ? rawGN   / 1e9  : rawGN;
+      const khHHBH = rawHHBH > 1000 ? rawHHBH / 1e6  : rawHHBH;
+      return {
+        maCB,
+        hoTen: String(row.HO_TEN||row.ho_ten||'').trim(),
+        donVi: String(row.DON_VI||row.don_vi||'').trim(),
+        khHDV, khGN, khHHBH,
+      };
+    }).filter(r=>r.maCB);
     document.getElementById('kh-n').textContent=_khRows.length;
     document.getElementById('kh-body').innerHTML=_khRows.map(r=>`<tr>
       <td class="mono fw7">${r.maCB}</td><td>${r.hoTen||'–'}</td><td>${r.donVi||'–'}</td>
-      <td class="mono">${r.khHDV||'–'}</td><td class="mono">${r.khGN||'–'}</td><td class="mono">${r.khHHBH||'–'}</td>
+      <td class="mono">${r.khHDV>0?r.khHDV.toFixed(3):'–'}</td>
+      <td class="mono">${r.khGN>0?r.khGN.toFixed(3):'–'}</td>
+      <td class="mono">${r.khHHBH>0?r.khHHBH.toFixed(2):'–'}</td>
     </tr>`).join('');
     document.getElementById('kh-prev').style.display='block';
     toast('Đọc '+_khRows.length+' cán bộ');
@@ -1220,9 +1231,9 @@ function dlKhSample(){
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
     ['MA_CB','HO_TEN','DON_VI','KH_HDV_TY','KH_GN_TY','KH_HHBH_TRIEU'],
-    ['KHDN01','Nguyen Van A','KHDN',5.0,10.5,30],
-    ['KHCN01','Tran Thi B','KHCN',3.0,5.0,20],
-    ['CTHU01','Le Van C','Cẩm Thủy',2.0,4.0,15],
+    ['KHDN01','Nguyen Van A','KHDN',5000000000,10500000000,30000000],
+    ['KHCN01','Tran Thi B','KHCN',3000000000,5000000000,20000000],
+    ['CTHU01','Le Van C','Cẩm Thủy',2000000000,4000000000,15000000],
   ]),'KeHoach');
   XLSX.writeFile(wb,'FileMau_KeHoach.xlsx');
 }
