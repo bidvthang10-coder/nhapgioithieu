@@ -1184,22 +1184,24 @@ function parseKh(file){
     const wb=XLSX.read(e.target.result,{type:'array'});
     const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
     _khRows=rows.map(row=>{
-      const maCB=String(row.MA_CB||row.ma_cb||'').trim().replace(/\.0+$/,'').toUpperCase();
-      // Đọc giá trị thô (đơn vị đồng), chuyển sang tỷ/triệu
-      const rawHDV =Number(row.KH_HDV_TY   ||row.kh_hdv  ||0)||0;
-      const rawGN  =Number(row.KH_GN_TY    ||row.kh_gn   ||0)||0;
-      const rawHHBH=Number(row.KH_HHBH_TRIEU||row.kh_hhbh||0)||0;
-      // Nếu giá trị > 1000 → đang là đồng, chia về tỷ/triệu
-      const khHDV  = rawHDV  > 1000 ? rawHDV  / 1e9  : rawHDV;
-      const khGN   = rawGN   > 1000 ? rawGN   / 1e9  : rawGN;
-      const khHHBH = rawHHBH > 1000 ? rawHHBH / 1e6  : rawHHBH;
+      // MA_CB có thể là số nguyên (149094) hoặc chuỗi — đều xử lý được
+      const rawMaCB = row.MA_CB ?? row.ma_cb ?? '';
+      const maCB = String(rawMaCB).trim().replace(/\.0+$/, '').toUpperCase();
+      // Đọc giá trị thô — có thể là đồng (50330000000) hoặc tỷ (50.33)
+      const rawHDV  = parseFloat(row.KH_HDV_TY    ?? row.kh_hdv   ?? 0) || 0;
+      const rawGN   = parseFloat(row.KH_GN_TY     ?? row.kh_gn    ?? 0) || 0;
+      const rawHHBH = parseFloat(row.KH_HHBH_TRIEU?? row.kh_hhbh ?? 0) || 0;
+      // Nếu > 1,000,000 → đang là đồng → chia về tỷ / triệu
+      const khHDV  = rawHDV  > 1e6 ? rawHDV  / 1e9 : rawHDV;
+      const khGN   = rawGN   > 1e6 ? rawGN   / 1e9 : rawGN;
+      const khHHBH = rawHHBH > 1e6 ? rawHHBH / 1e6 : rawHHBH;
       return {
         maCB,
-        hoTen: String(row.HO_TEN||row.ho_ten||'').trim(),
-        donVi: String(row.DON_VI||row.don_vi||'').trim(),
+        hoTen: String(row.HO_TEN || row.ho_ten || '').trim(),
+        donVi: String(row.DON_VI || row.don_vi || '').trim(),
         khHDV, khGN, khHHBH,
       };
-    }).filter(r=>r.maCB);
+    }).filter(r => r.maCB);
     document.getElementById('kh-n').textContent=_khRows.length;
     document.getElementById('kh-body').innerHTML=_khRows.map(r=>`<tr>
       <td class="mono fw7">${r.maCB}</td><td>${r.hoTen||'–'}</td><td>${r.donVi||'–'}</td>
