@@ -172,16 +172,21 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#F5F8FF}
       <!-- DASHBOARD -->
       <div class="panel on" id="p-dash">
         <div class="sg">
-          <div class="sc"><div class="sl">Tổng CIF GT</div><div class="sv" id="d-cif">–</div><div class="ss">Tất cả SP</div></div>
-          <div class="sc o"><div class="sl">HĐV huy động</div><div class="sv" id="d-hdv">–</div><div class="ss">Tỷ đồng</div></div>
-          <div class="sc t"><div class="sl">Giải ngân TD</div><div class="sv" id="d-gn">–</div><div class="ss">Tỷ đồng</div></div>
-          <div class="sc p"><div class="sl">Hoa hồng BH</div><div class="sv" id="d-bh">–</div><div class="ss">Triệu đồng</div></div>
+          <div class="sc"><div class="sl">Tổng CIF đã GT</div><div class="sv" id="d-cif">–</div><div class="ss">Tất cả sản phẩm</div></div>
+          <div class="sc g"><div class="sl">Nhập hôm nay</div><div class="sv" id="d-today">–</div><div class="ss">CIF mới</div></div>
+          <div class="sc o"><div class="sl">Tuần này</div><div class="sv" id="d-week">–</div><div class="ss">CIF 7 ngày qua</div></div>
+          <div class="sc t"><div class="sl">Tháng này</div><div class="sv" id="d-month">–</div><div class="ss">CIF trong tháng</div></div>
+        </div>
+        <div class="sg" style="grid-template-columns:repeat(3,1fr)">
+          <div class="sc"><div class="sl">HĐV</div><div class="sv" id="d-cnt-hdv">–</div><div class="ss">lượt giới thiệu</div></div>
+          <div class="sc o"><div class="sl">Tín dụng</div><div class="sv" id="d-cnt-td">–</div><div class="ss">lượt giới thiệu</div></div>
+          <div class="sc p"><div class="sl">Bảo hiểm</div><div class="sv" id="d-cnt-bh">–</div><div class="ss">lượt giới thiệu</div></div>
         </div>
         <div style="display:grid;grid-template-columns:2fr 1fr;gap:15px">
           <div class="card">
-            <div class="ch"><div class="ctt">🏆 Top cán bộ</div><button class="btn bo bs" onclick="loadDash()">↻</button></div>
+            <div class="ch"><div class="ctt">🏆 Top cán bộ nhập liệu</div><button class="btn bo bs" onclick="loadDash()">↻</button></div>
             <div class="tw"><table>
-              <thead><tr><th>#</th><th>Mã CB</th><th>Họ tên</th><th>Đơn vị</th><th>CIF GT</th><th>HĐV (tỷ)</th><th>GN (tỷ)</th><th>BH (tr)</th></tr></thead>
+              <thead><tr><th>#</th><th>Mã CB</th><th>Họ tên</th><th>Đơn vị</th><th>Tổng GT</th><th>HĐV</th><th>Tín dụng</th><th>Bảo hiểm</th><th>Gần nhất</th></tr></thead>
               <tbody id="d-top"></tbody>
             </table></div>
           </div>
@@ -191,9 +196,9 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#F5F8FF}
           </div>
         </div>
         <div class="card mt3">
-          <div class="ch"><div class="ctt">🕓 Gần đây nhất</div></div>
+          <div class="ch"><div class="ctt">🕓 Vừa nhập gần đây</div></div>
           <div class="tw"><table>
-            <thead><tr><th>Thời gian</th><th>CIF</th><th>Mã CB</th><th>Họ tên</th><th>Đơn vị</th><th>Loại SP</th><th>HĐV</th><th>GN</th><th>BH</th><th>Ngày GT</th></tr></thead>
+            <thead><tr><th>Thời gian nhập</th><th>CIF</th><th>Mã CB</th><th>Họ tên</th><th>Đơn vị</th><th>Loại SP</th><th>Ngày GT</th><th>Ghi chú</th></tr></thead>
             <tbody id="d-rec"></tbody>
           </table></div>
         </div>
@@ -203,7 +208,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#F5F8FF}
       <div class="panel" id="p-add">
         <div class="card" style="max-width:580px;margin:0 auto">
           <div class="ch"><div class="ctt">➕ Nhập giới thiệu khách hàng</div></div>
-          <div class="info">💡 Mỗi CIF chỉ GT 1 lần. Ngày GT không lùi quá 30 ngày.</div>
+          <div class="info">💡 Mỗi CIF chỉ GT 1 lần. HĐV không cần nhập số tiền. Ngày GT không lùi quá 30 ngày.</div>
           <div class="fg2">
             <div class="fg f">
               <label>Mã cán bộ *</label>
@@ -233,10 +238,6 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#F5F8FF}
                 <option value="TinDung">Tín dụng</option>
                 <option value="BaoHiem">Bảo hiểm</option>
               </select>
-            </div>
-            <div class="fg f" id="row-hdv">
-              <label>HĐV (tỷ đồng)</label>
-              <input type="number" id="a-hdv" placeholder="VD: 1.5" step="0.001" min="0">
             </div>
             <div class="fg f" id="row-gn" style="display:none">
               <label>Số tiền giải ngân (tỷ đồng) *</label>
@@ -353,7 +354,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#F5F8FF}
           <div class="tw tws">
             <table><thead><tr>
               <th>Thời gian</th><th>CIF</th><th>Mã CB</th><th>Họ tên</th><th>Đơn vị</th>
-              <th>Loại SP</th><th>HĐV (tỷ)</th><th>GN (tỷ)</th><th>BH (tr)</th><th>Ngày GT</th><th>Ghi chú</th><th id="col-del"></th>
+              <th>Loại SP</th><th>GN (tỷ)</th><th>BH (tr)</th><th>Ngày GT</th><th>Ghi chú</th><th>Sửa</th><th id="col-del"></th>
             </tr></thead>
             <tbody id="ls-body"></tbody></table>
           </div>
@@ -466,6 +467,48 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#F5F8FF}
         </div>
       </div>
 
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SỬA GT -->
+<div class="mo" id="mo-edit">
+  <div class="md">
+    <div class="mdh"><div class="mdt">✏️ Cập nhật giới thiệu</div><button class="mdx" onclick="cMo('mo-edit')">✕</button></div>
+    <input type="hidden" id="edit-id">
+    <div class="fg2">
+      <div class="fg f">
+        <label>CIF</label>
+        <input type="text" id="edit-cif" readonly style="background:#F0F4FA;color:var(--b);font-weight:600">
+      </div>
+      <div class="fg"><label>Mã CB</label><input type="text" id="edit-macb" readonly style="background:#F0F4FA"></div>
+      <div class="fg"><label>Họ tên CB</label><input type="text" id="edit-hoten" readonly style="background:#F0F4FA"></div>
+      <div class="fg f">
+        <label>Loại SP</label>
+        <input type="text" id="edit-loaisp" readonly style="background:#F0F4FA">
+      </div>
+      <div class="fg f" id="edit-row-gn" style="display:none">
+        <label>Số tiền giải ngân (tỷ đồng)</label>
+        <input type="number" id="edit-gn" placeholder="VD: 1.5" step="0.001" min="0">
+      </div>
+      <div class="fg f" id="edit-row-bh" style="display:none">
+        <label>Phí hoa hồng BH (triệu đồng)</label>
+        <input type="number" id="edit-bh" placeholder="VD: 5.2" step="0.01" min="0">
+      </div>
+      <div class="fg">
+        <label>Ngày giới thiệu</label>
+        <input type="date" id="edit-ngay">
+        <div class="fe" id="edit-ngay-err"></div>
+      </div>
+      <div class="fg f">
+        <label>Ghi chú</label>
+        <textarea id="edit-note" rows="2" placeholder="Ghi chú..."></textarea>
+      </div>
+    </div>
+    <div class="fe mt2" id="edit-err"></div>
+    <div class="row mt3" style="justify-content:flex-end">
+      <button class="btn bo" onclick="cMo('mo-edit')">Huỷ</button>
+      <button class="btn ba" id="btn-edit-save" onclick="submitEdit()">💾 Lưu cập nhật</button>
     </div>
   </div>
 </div>
@@ -634,36 +677,59 @@ async function loadCbList(){
 async function loadDash(){
   try{
     const all=await fetchAll(true);
+    const now=new Date();
+    const todayStr=today();
+    const week=new Date(now); week.setDate(week.getDate()-7);
+    const monthStart=new Date(now.getFullYear(),now.getMonth(),1);
+
+    // KPI nhập liệu
+    const todayCnt =all.filter(r=>String(r.NHAP_LUC||'').slice(0,10)===todayStr).length;
+    const weekCnt  =all.filter(r=>new Date(String(r.NHAP_LUC||'').slice(0,10))>=week).length;
+    const monthCnt =all.filter(r=>new Date(String(r.NHAP_LUC||'').slice(0,10))>=monthStart).length;
+    const cntHDV   =all.filter(r=>r.LOAI_SP==='HDV').length;
+    const cntTD    =all.filter(r=>r.LOAI_SP==='TinDung').length;
+    const cntBH    =all.filter(r=>r.LOAI_SP==='BaoHiem').length;
+
     document.getElementById('d-cif').textContent=all.length;
-    document.getElementById('d-hdv').textContent=all.reduce((s,r)=>s+Number(r.HDV_TY||0),0).toFixed(2);
-    document.getElementById('d-gn').textContent=all.reduce((s,r)=>s+Number(r.SO_TIEN_GN||0),0).toFixed(2);
-    document.getElementById('d-bh').textContent=all.reduce((s,r)=>s+Number(r.PHI_HHBH||0),0).toFixed(1);
+    document.getElementById('d-today').textContent=todayCnt;
+    document.getElementById('d-week').textContent=weekCnt;
+    document.getElementById('d-month').textContent=monthCnt;
+    document.getElementById('d-cnt-hdv').textContent=cntHDV;
+    document.getElementById('d-cnt-td').textContent=cntTD;
+    document.getElementById('d-cnt-bh').textContent=cntBH;
+
+    // Top CB
     const cbM=buildCbMap(all);
     const top=Object.values(cbM).sort((a,b)=>b.n-a.n).slice(0,8);
     document.getElementById('d-top').innerHTML=top.length
       ?top.map((s,i)=>`<tr>
-          <td>${['[1]','[2]','[3]'][i]||i+1}</td>
+          <td>${['🥇','🥈','🥉'][i]||i+1}</td>
           <td class="mono fw7" style="color:var(--b2)">${s.maCB}</td>
           <td>${s.hoTen}</td><td><span class="bx bxb">${s.donVi}</span></td>
           <td class="mono fw7">${s.n}</td>
-          <td class="mono">${s.hdv.toFixed(2)}</td>
-          <td class="mono">${s.gn.toFixed(2)}</td>
-          <td class="mono">${s.bh.toFixed(1)}</td>
+          <td class="mono">${s.nHDV}</td>
+          <td class="mono">${s.nTD}</td>
+          <td class="mono">${s.nBH}</td>
+          <td class="sm mt">${s.lastDate||'–'}</td>
         </tr>`).join('')
-      :'<tr><td colspan="8" class="empty">Chưa có dữ liệu</td></tr>';
+      :'<tr><td colspan="9" class="empty">Chưa có dữ liệu</td></tr>';
+
+    // Theo đơn vị
     const dvM=buildDvMap(all);
     const dvArr=Object.entries(dvM).sort((a,b)=>b[1]-a[1]);
     const maxN=Math.max(...dvArr.map(e=>e[1]),1);
     document.getElementById('d-bars').innerHTML=dvArr.length
       ?dvArr.map(([d,n])=>`<div>
           <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
-            <span class="fw7">${d}</span><span class="mono">${n}</span>
+            <span class="fw7">${d}</span><span class="mono fw7">${n} CIF</span>
           </div>
           <div style="background:var(--br);border-radius:10px;height:6px;overflow:hidden">
             <div style="height:100%;border-radius:10px;background:var(--gn2);width:${(n/maxN*100).toFixed(0)}%"></div>
           </div></div>`).join('')
       :'<div class="mt sm">Chưa có</div>';
-    const rec=all.slice().sort((a,b)=>String(b.NHAP_LUC||'').localeCompare(String(a.NHAP_LUC||''))).slice(0,8);
+
+    // Gần đây
+    const rec=all.slice().sort((a,b)=>String(b.NHAP_LUC||'').localeCompare(String(a.NHAP_LUC||''))).slice(0,10);
     document.getElementById('d-rec').innerHTML=rec.length
       ?rec.map(r=>`<tr>
           <td class="sm mt">${String(r.NHAP_LUC||'–').slice(0,16)}</td>
@@ -671,12 +737,10 @@ async function loadDash(){
           <td class="mono" style="color:var(--b2)">${r.MA_CB}</td>
           <td>${r.HO_TEN||'–'}</td><td><span class="bx bxb">${r.DON_VI||'–'}</span></td>
           <td><span class="bx ${SP_C[r.LOAI_SP]||'bxgr'}">${SP_L[r.LOAI_SP]||r.LOAI_SP}</span></td>
-          <td class="mono">${Number(r.HDV_TY||0)>0?Number(r.HDV_TY).toFixed(3):'–'}</td>
-          <td class="mono">${Number(r.SO_TIEN_GN||0)>0?Number(r.SO_TIEN_GN).toFixed(3):'–'}</td>
-          <td class="mono">${Number(r.PHI_HHBH||0)>0?Number(r.PHI_HHBH).toFixed(2):'–'}</td>
           <td class="sm">${r.NGAY_GT||'–'}</td>
+          <td class="sm mt">${r.GHI_CHU||'–'}</td>
         </tr>`).join('')
-      :'<tr><td colspan="10" class="empty">Chưa có</td></tr>';
+      :'<tr><td colspan="8" class="empty">Chưa có</td></tr>';
   }catch(e){toast('Lỗi dashboard: '+e.message,'er');}
 }
 
@@ -715,7 +779,6 @@ function selectAddCb(maCB,hoTen,donVi){
 
 function onLoaiSPChange(){
   const sp=document.getElementById('a-loaisp').value;
-  document.getElementById('row-hdv').style.display=sp==='HDV'?'':'none';
   document.getElementById('row-gn').style.display=sp==='TinDung'?'':'none';
   document.getElementById('row-bh').style.display=sp==='BaoHiem'?'':'none';
   ['a-gn-err','a-bh-err'].forEach(id=>document.getElementById(id).textContent='');
@@ -774,9 +837,8 @@ async function submitAdd(){
       hoTen: document.getElementById('a-hoten').value,
       donVi: document.getElementById('a-donvi').value,
       cif, loaiSP:sp,
-      hdvTy:   sp==='HDV'     ? Number(document.getElementById('a-hdv').value||0) : 0,
-      soTienGN:sp==='TinDung' ? Number(document.getElementById('a-gn').value||0)  : 0,
-      phiHHBH: sp==='BaoHiem' ? Number(document.getElementById('a-bh').value||0)  : 0,
+      soTienGN:sp==='TinDung' ? Number(document.getElementById('a-gn').value||0) : 0,
+      phiHHBH: sp==='BaoHiem' ? Number(document.getElementById('a-bh').value||0) : 0,
       ngayGT:document.getElementById('a-ngay').value,
       ghiChu:document.getElementById('a-note').value.trim()
     });
@@ -791,7 +853,7 @@ async function submitAdd(){
   finally{btn.disabled=false;btn.textContent='✔ Xác nhận';}
 }
 function clearAdd(){
-  ['a-macb','a-cif','a-hdv','a-gn','a-bh','a-note'].forEach(id=>document.getElementById(id).value='');
+  ['a-macb','a-cif','a-gn','a-bh','a-note'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('a-hoten').value='';
   document.getElementById('a-donvi').value='';
   document.getElementById('a-cif').classList.remove('e');
@@ -1027,11 +1089,11 @@ function renderList(){
         <td>${r.HO_TEN||'–'}</td>
         <td><span class="bx bxb">${r.DON_VI||'–'}</span></td>
         <td><span class="bx ${SP_C[r.LOAI_SP]||'bxgr'}">${SP_L[r.LOAI_SP]||r.LOAI_SP}</span></td>
-        <td class="mono">${Number(r.HDV_TY||0)>0?Number(r.HDV_TY).toFixed(3):'–'}</td>
         <td class="mono">${Number(r.SO_TIEN_GN||0)>0?Number(r.SO_TIEN_GN).toFixed(3):'–'}</td>
         <td class="mono">${Number(r.PHI_HHBH||0)>0?Number(r.PHI_HHBH).toFixed(2):'–'}</td>
         <td class="sm">${r.NGAY_GT||'–'}</td>
         <td class="sm mt">${r.GHI_CHU||'–'}</td>
+        <td><button class="btn bs bo" onclick='openEdit(${JSON.stringify(r)})'>✏️</button></td>
         <td>${isAdm?`<button class="btn bs bd" onclick="delGT('${r.ID}','${r.CIF}')">✕</button>`:''}</td>
       </tr>`).join('')
     :'<tr><td colspan="12" class="empty">Không có dữ liệu</td></tr>';
@@ -1041,6 +1103,52 @@ async function delGT(id,cif){
     try{await gasPost({action:'del_gt',id});toast('Đã xoá '+cif,'ok');_cache=null;loadList();loadDash();}
     catch(e){toast('Lỗi: '+e.message,'er');}
   });
+}
+
+function openEdit(r){
+  document.getElementById('edit-id').value=r.ID||'';
+  document.getElementById('edit-cif').value=r.CIF||'';
+  document.getElementById('edit-macb').value=r.MA_CB||'';
+  document.getElementById('edit-hoten').value=r.HO_TEN||'';
+  document.getElementById('edit-loaisp').value=SP_L[r.LOAI_SP]||r.LOAI_SP||'';
+  document.getElementById('edit-ngay').value=r.NGAY_GT||today();
+  document.getElementById('edit-note').value=r.GHI_CHU||'';
+  document.getElementById('edit-err').textContent='';
+  document.getElementById('edit-ngay-err').textContent='';
+  // Hiện/ẩn trường theo loại SP
+  const sp=r.LOAI_SP||'HDV';
+  document.getElementById('edit-row-gn').style.display=sp==='TinDung'?'':'none';
+  document.getElementById('edit-row-bh').style.display=sp==='BaoHiem'?'':'none';
+  document.getElementById('edit-gn').value=sp==='TinDung'?(Number(r.SO_TIEN_GN||0)||''):'';
+  document.getElementById('edit-bh').value=sp==='BaoHiem'?(Number(r.PHI_HHBH||0)||''):'';
+  document.getElementById('mo-edit').classList.add('on');
+}
+
+async function submitEdit(){
+  const id=document.getElementById('edit-id').value;
+  const ngay=document.getElementById('edit-ngay').value;
+  const errEl=document.getElementById('edit-err');
+  const ngayErr=document.getElementById('edit-ngay-err');
+  errEl.textContent=''; ngayErr.textContent='';
+  if(!ngay){ngayErr.textContent='Ngày GT là bắt buộc';return;}
+  const sp=document.getElementById('edit-loaisp').value;
+  // Map tên hiển thị về key
+  const spKey=Object.keys(SP_L).find(k=>SP_L[k]===sp)||sp;
+  const btn=document.getElementById('btn-edit-save');
+  btn.disabled=true; btn.textContent='Đang lưu...';
+  try{
+    await gasPost({
+      action:'update_gt', id,
+      soTienGN: spKey==='TinDung' ? Number(document.getElementById('edit-gn').value||0) : 0,
+      phiHHBH:  spKey==='BaoHiem' ? Number(document.getElementById('edit-bh').value||0)  : 0,
+      ngayGT: ngay,
+      ghiChu: document.getElementById('edit-note').value.trim(),
+    });
+    toast('✅ Đã cập nhật','ok');
+    cMo('mo-edit');
+    _cache=null; loadList(); loadDash();
+  }catch(e){errEl.textContent='❌ '+e.message;}
+  finally{btn.disabled=false;btn.textContent='💾 Lưu cập nhật';}
 }
 function exportListXlsx(){
   if(!_list.length){toast('Không có dữ liệu','wn');return;}
@@ -1233,8 +1341,13 @@ function buildCbMap(all){
   all.forEach(r=>{
     const k=String(r.MA_CB||'').trim().replace(/\.0+$/,'').toUpperCase();
     if(!k) return;
-    if(!m[k]) m[k]={maCB:k,hoTen:r.HO_TEN||k,donVi:r.DON_VI||'–',n:0,hdv:0,gn:0,bh:0};
-    m[k].n++; m[k].hdv+=Number(r.HDV_TY||0); m[k].gn+=Number(r.SO_TIEN_GN||0); m[k].bh+=Number(r.PHI_HHBH||0);
+    if(!m[k]) m[k]={maCB:k,hoTen:r.HO_TEN||k,donVi:r.DON_VI||'–',n:0,nHDV:0,nTD:0,nBH:0,lastDate:''};
+    m[k].n++;
+    if(r.LOAI_SP==='HDV')      m[k].nHDV++;
+    if(r.LOAI_SP==='TinDung')  m[k].nTD++;
+    if(r.LOAI_SP==='BaoHiem')  m[k].nBH++;
+    const d=String(r.NHAP_LUC||'').slice(0,10);
+    if(d>m[k].lastDate) m[k].lastDate=d;
   }); return m;
 }
 function buildDvMap(all){
