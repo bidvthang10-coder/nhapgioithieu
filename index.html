@@ -558,7 +558,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#F5F8FF}
 
 // == CẤU HÌNH URL CỐ ĐỊNH ==
 // Điền URL Apps Script vào đây để không cần cài đặt trên từng máy
-const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbz3noPCwXIqImp0aio05JVi1BeRa3phDWR9IadL-VZqOvUnf6rKo1mlOqzezijW8yS0Ug/exec';
+const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/PASTE_YOUR_URL_HERE/exec';
 // =========================
 
 let USER=null;
@@ -790,6 +790,9 @@ function onLoaiSPChange(){
   document.getElementById('row-gn').style.display=sp==='TinDung'?'':'none';
   document.getElementById('row-bh').style.display=sp==='BaoHiem'?'':'none';
   ['a-gn-err','a-bh-err'].forEach(id=>document.getElementById(id).textContent='');
+  // Re-check CIF với SP mới chọn
+  clearTimeout(_cifTimer);
+  _cifTimer=setTimeout(checkCifRemote,200);
 }
 
 function validateNgayGT_client(){
@@ -806,18 +809,32 @@ function validateNgayGT_client(){
 let _cifTimer=null;
 function onCifChange(){
   clearTimeout(_cifTimer);
-  document.getElementById('a-cif-err').textContent='';
+  const errEl=document.getElementById('a-cif-err');
+  errEl.textContent='';
+  errEl.style.color='var(--rd)';
   document.getElementById('a-cif').classList.remove('e');
   _cifTimer=setTimeout(checkCifRemote,400);
 }
 async function checkCifRemote(){
   const cif=normCif(document.getElementById('a-cif').value);
+  const loaiSP=document.getElementById('a-loaisp').value;
+  const errEl=document.getElementById('a-cif-err');
   if(!cif||!GAS_URL) return;
   try{
-    const d=await gasGet({action:'check_cif',cif});
+    const d=await gasGet({action:'check_cif', cif, loaiSP});
     if(d.exists){
+      // Trùng đúng CIF + SP này → block
       document.getElementById('a-cif').classList.add('e');
-      document.getElementById('a-cif-err').textContent=`⚠️ Trùng! ${d.hoTen} [${d.maCB}] (${d.donVi}) đã GT ngày ${d.ngayGT}`;
+      errEl.style.color='var(--rd)';
+      errEl.textContent=`⚠️ CIF này đã GT ${SP_L[d.loaiSP]||d.loaiSP} bởi ${d.hoTen} [${d.maCB}] ngày ${d.ngayGT}`;
+    } else if(d.cifHasSP){
+      // CIF đã GT SP khác → cảnh báo nhẹ, không block
+      document.getElementById('a-cif').classList.remove('e');
+      errEl.style.color='#E65100';
+      errEl.textContent=`ℹ️ CIF đã GT: ${d.spList} (${d.hoTen}) — có thể GT thêm SP khác`;
+    } else {
+      document.getElementById('a-cif').classList.remove('e');
+      errEl.textContent='';
     }
   }catch(_){}
 }
@@ -888,9 +905,9 @@ async function parseBulk(file){
     const ws=wb.Sheets[wb.SheetNames[0]];
     const raw=XLSX.utils.sheet_to_json(ws,{defval:'',raw:true});
 
-    // Build set CIF đã có (để check trùng local)
-    let existing=new Set();
-    try{ existing=new Set((await fetchAll()).map(r=>String(r.CIF||'').trim())); }catch(_){}
+    // Build set key trùng = CIF|LOAI_SP
+    let existingKeys=new Set();
+    try{ (await fetchAll()).forEach(r=>existingKeys.add(String(r.CIF||'').trim()+'|'+String(r.LOAI_SP||'').trim())); }catch(_){}
 
     const today30=new Date(); today30.setDate(today30.getDate()-30);
     const todayD=new Date();
@@ -939,7 +956,7 @@ async function parseBulk(file){
       if(isNaN(nd)) return {_i:i+2,maCB,cif,sp,ngay,hdvTy,soTienGN,phiHHBH,ghiChu,...cbInfo,_s:'error',_r:'Ngày không hợp lệ'};
       if(nd>todayD) return {_i:i+2,maCB,cif,sp,ngay,hdvTy,soTienGN,phiHHBH,ghiChu,...cbInfo,_s:'error',_r:'Ngày tương lai'};
       if(nd<today30)return {_i:i+2,maCB,cif,sp,ngay,hdvTy,soTienGN,phiHHBH,ghiChu,...cbInfo,_s:'error',_r:'Quá 30 ngày'};
-      if(existing.has(cif)) return {_i:i+2,maCB,cif,sp,ngay,hdvTy,soTienGN,phiHHBH,ghiChu,...cbInfo,_s:'dup',_r:'CIF đã tồn tại'};
+      if(existingKeys.has(cif+'|'+sp)) return {_i:i+2,maCB,cif,sp,ngay,hdvTy,soTienGN,phiHHBH,ghiChu,...cbInfo,_s:'dup',_r:'CIF + SP đã tồn tại'};
 
       return {_i:i+2,maCB,cif,sp,ngay,hdvTy,soTienGN,phiHHBH,ghiChu,...cbInfo,_s:'ok',_r:''};
     });
