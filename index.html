@@ -556,7 +556,15 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#F5F8FF}
 'use strict';
 // BIDV Cẩm Phả v6
 
-let USER=null, GAS_URL=localStorage.getItem('_gas_url')||'';
+// == CẤU HÌNH URL CỐ ĐỊNH ==
+// Điền URL Apps Script vào đây để không cần cài đặt trên từng máy
+const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbz3noPCwXIqImp0aio05JVi1BeRa3phDWR9IadL-VZqOvUnf6rKo1mlOqzezijW8yS0Ug/exec';
+// =========================
+
+let USER=null;
+let GAS_URL = GAS_URL_DEFAULT.includes('PASTE_YOUR_URL_HERE')
+  ? (localStorage.getItem('_gas_url')||'')
+  : GAS_URL_DEFAULT;
 let _cache=null, _cacheAt=0, _bcData=[], _cbList=[], _tcData=[], _bulkRows=[], _cbUpRows=[];
 
 const ROLE_L={admin:'Admin',nhap:'Nhap lieu',xem:'Xem'};
